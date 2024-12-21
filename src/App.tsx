@@ -5,6 +5,7 @@ function App() {
   return (
     <div className="App">
       <FaceDetection />
+      {/* <EmbeddingGenerator /> */}
     </div>
   )
 }

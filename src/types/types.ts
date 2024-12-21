@@ -55,41 +55,14 @@ export interface ProcessedImage {
   cleanup?: () => void;
 }
 
-// export interface FaceDetectionResult {
-//   descriptor: Float32Array;
-//   detection: {
-//     box: {
-//       x: number;
-//       y: number;
-//       width: number;
-//       height: number;
-//     };
-//     landmarks: Array<{ x: number; y: number }>;
-//     score: number;
-//   };
-// }
-
 // Interface for the FaceApiService
 export interface IFaceApiService {
   detectFace(image: ProcessedImage): Promise<FaceDetectionResult | null>;
   computeSimilarity(descriptor1: Float32Array, descriptor2: Float32Array): number;
 }
 
-// Interface for the ModelLoader
-export interface IModelLoader {
-  loadModels(): Promise<void>;
-}
-
 // Interface for the ImageProcessor
 export interface IImageProcessor {
   processImage(file: File): Promise<ProcessedImage>;
   cleanup(image: ProcessedImage): void;
-}
-
-// Interface for the StorageManager
-export interface IStorageManager {
-  savePlayerData(players: KBOPlayer[]): Promise<void>;
-  loadPlayerData(): Promise<KBOPlayer[]>;
-  clearStorage(): void;
-  initializeDummyData(): Promise<void>;
 }

@@ -1,6 +1,6 @@
 // src/utils/storageManager.ts
-import { KBOPlayer, IStorageManager } from '../types';
 import { CONFIG } from '../constants/config';
+import { IStorageManager, KBOPlayer } from '../types/types';
 
 export class StorageManager implements IStorageManager {
     private static instance: StorageManager | null = null;

@@ -1,7 +1,6 @@
 // src/services/faceApi.ts
 import * as faceapi from 'face-api.js';
-import { FaceDetectionResult, ProcessedImage } from '../types';
-import { CONFIG } from '../constants/config';
+import { ProcessedImage, FaceDetectionResult } from '../types/types';
 
 export class FaceApiService {
     private static instance: FaceApiService | null = null;

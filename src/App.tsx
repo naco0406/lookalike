@@ -6,6 +6,9 @@ function App() {
     <div className="App">
       <FaceDetection />
       {/* <EmbeddingGenerator /> */}
+      <footer className="text-center text-gray-500 text-xs mt-4">
+        © 2024 Naco. All rights reserved.
+      </footer>
     </div>
   )
 }

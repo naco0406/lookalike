@@ -103,9 +103,11 @@ const FaceDetection: React.FC = () => {
 
     return (
         <div className="container mx-auto px-4 py-8">
-            <h1 className="text-3xl font-bold text-center mb-4">
+            <h1 className="text-4xl font-bold text-center mb-4">
                 KBO 닮은꼴 찾기
             </h1>
+            <div className='text-xs mb-1'>* 아직 SSG 랜더스만 임베딩이 완료되었습니다</div>
+            <div className='text-xs mb-6'>* 벡터 유사도 상위 3명을 보여줍니다</div>
 
             <div>
                 {status === 'loading' && (

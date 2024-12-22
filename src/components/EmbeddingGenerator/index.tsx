@@ -1,12 +1,16 @@
+// components/EmbeddingGenerator.tsx
 import * as faceapi from 'face-api.js';
-import { useEffect, useState } from 'react';
-import { FaceDetectionResult, KBOPlayer, ModelLoadingStatus, ModelStatus } from '../../types/types';
+import { useEffect, useState, useRef } from 'react';
+import { ModelLoadingStatus, KBOPlayer, ModelStatus, FaceDetectionResult } from '../../types/types';
 
 const EmbeddingGenerator = () => {
     const [modelStatus, setModelStatus] = useState<ModelLoadingStatus>('idle');
     const [status, setStatus] = useState<string>('');
     const [players, setPlayers] = useState<KBOPlayer[]>([]);
     const [isLoading, setIsLoading] = useState<boolean>(true);
+    const [currentProcessingIndex, setCurrentProcessingIndex] = useState<number>(-1);
+    const canvasRef = useRef<HTMLCanvasElement>(null);
+    const imageRef = useRef<HTMLImageElement>(null);
     const [modelLoadStatus, setModelLoadStatus] = useState<ModelStatus>({
         faceDetection: false,
         faceLandmark: false,
@@ -69,15 +73,6 @@ const EmbeddingGenerator = () => {
         return nameWithoutExt.replace(/-/g, ' ');
     };
 
-    useEffect(() => {
-        const initializeApp = async () => {
-            await loadModels();
-            await loadImagesFromPublic();
-        };
-
-        initializeApp();
-    }, []);
-
     const loadModels = async () => {
         try {
             setModelStatus('loading');
@@ -101,6 +96,15 @@ const EmbeddingGenerator = () => {
         }
     };
 
+    useEffect(() => {
+        const initializeApp = async () => {
+            await loadModels();
+            await loadImagesFromPublic();
+        };
+
+        initializeApp();
+    }, []);
+
     const handlePlayerInfoUpdate = (index: number, field: keyof KBOPlayer, value: string) => {
         const updatedPlayers = [...players];
         updatedPlayers[index] = {
@@ -108,6 +112,34 @@ const EmbeddingGenerator = () => {
             [field]: value
         };
         setPlayers(updatedPlayers);
+    };
+
+    const visualizeFaceDetection = async (
+        canvas: HTMLCanvasElement,
+        img: HTMLImageElement,
+        detection: faceapi.FaceDetection,
+        landmarks: faceapi.FaceLandmarks68
+    ) => {
+        // 캔버스 크기를 이미지에 맞게 조정
+        const displaySize = { width: img.width, height: img.height };
+        faceapi.matchDimensions(canvas, displaySize);
+
+        // 캔버스 초기화
+        const ctx = canvas.getContext('2d');
+        ctx?.clearRect(0, 0, canvas.width, canvas.height);
+
+        // 이미지 그리기
+        ctx?.drawImage(img, 0, 0);
+
+        // 감지된 얼굴 박스 그리기
+        const detectionDrawBox = new faceapi.draw.DrawBox(detection.box, {
+            label: 'Face',
+            boxColor: '#00ff00'
+        });
+        detectionDrawBox.draw(canvas);
+
+        // 랜드마크 그리기
+        faceapi.draw.drawFaceLandmarks(canvas, landmarks);
     };
 
     const detectFace = async (img: HTMLImageElement): Promise<FaceDetectionResult | null> => {
@@ -118,11 +150,86 @@ const EmbeddingGenerator = () => {
 
         if (!detection) return null;
 
+        // 캔버스가 있다면 시각화
+        if (canvasRef.current) {
+            await visualizeFaceDetection(
+                canvasRef.current,
+                img,
+                detection.detection,
+                detection.landmarks
+            );
+        }
+
         return {
             detection: detection.detection,
             landmarks: detection.landmarks,
             descriptor: detection.descriptor
         };
+    };
+
+    const [processedPlayers, setProcessedPlayers] = useState<KBOPlayer[]>([]);
+    const [processingComplete, setProcessingComplete] = useState<boolean>(false);
+    const [processedCount, setProcessedCount] = useState<number>(0);
+
+    const processNextPlayer = async () => {
+        if (modelStatus !== 'loaded') {
+            setStatus('모델이 아직 로드되지 않았습니다.');
+            return;
+        }
+
+        const incompletePlayer = players.find(p => !p.name || !p.team);
+        if (incompletePlayer) {
+            setStatus('모든 선수의 이름과 팀 정보를 입력해주세요.');
+            return;
+        }
+
+        if (currentProcessingIndex >= players.length - 1) {
+            setProcessingComplete(true);
+            setStatus('모든 선수 처리가 완료되었습니다. 임베딩을 저장해주세요.');
+            return;
+        }
+
+        const nextIndex = currentProcessingIndex + 1;
+        setCurrentProcessingIndex(nextIndex);
+        const player = players[nextIndex];
+
+        try {
+            setStatus(`${player.name} 처리 중...`);
+
+            // 이미지 로드
+            const img = await faceapi.fetchImage(player.imageUrl);
+
+            // 이미지 참조 업데이트
+            if (imageRef.current) {
+                imageRef.current.src = player.imageUrl;
+            }
+
+            // 얼굴 감지 및 디스크립터 추출
+            const faceData = await detectFace(img);
+
+            if (!faceData) {
+                setStatus(`${player.name}의 얼굴을 찾을 수 없습니다. 다음 선수로 넘어가려면 '다음' 버튼을 클릭하세요.`);
+                return;
+            }
+
+            const descriptorArray = Array.from(faceData.descriptor);
+            const fileName = player.imageUrl.split('/').pop() || '';
+
+            const newPlayer = {
+                id: player.id,
+                name: player.name,
+                team: player.team,
+                imageUrl: `/images/${fileName}`,
+                descriptor: new Float32Array(descriptorArray)
+            };
+
+            setProcessedPlayers(prev => [...prev, newPlayer]);
+            setProcessedCount(prev => prev + 1);
+            setStatus(`${player.name} 처리 완료. 다음 선수로 넘어가려면 '다음' 버튼을 클릭하세요.`);
+        } catch (error) {
+            console.error(`Error processing ${player.name}:`, error);
+            setStatus(`${player.name} 처리 중 오류 발생: ${(error as Error).message}. 다음 선수로 넘어가려면 '다음' 버튼을 클릭하세요.`);
+        }
     };
 
     const generateEmbeddings = async () => {
@@ -137,17 +244,29 @@ const EmbeddingGenerator = () => {
             return;
         }
 
-        setStatus('임베딩 생성 중...');
-        const processedPlayers: KBOPlayer[] = [];
+        setStatus('임베딩 생성 시작...');
+        setCurrentProcessingIndex(-1);
+        setProcessedPlayers([]);
+        setProcessedCount(0);
+        setProcessingComplete(false);
+        await processNextPlayer();
         let totalProcessed = 0;
 
         try {
-            for (const player of players) {
+            for (let i = 0; i < players.length; i++) {
+                const player = players[i];
+                setCurrentProcessingIndex(i);
+
                 try {
-                    // Load image
+                    // 이미지 로드
                     const img = await faceapi.fetchImage(player.imageUrl);
 
-                    // Detect face and get descriptor
+                    // 이미지 참조 업데이트
+                    if (imageRef.current) {
+                        imageRef.current.src = player.imageUrl;
+                    }
+
+                    // 얼굴 감지 및 디스크립터 추출
                     const faceData = await detectFace(img);
 
                     if (!faceData) {
@@ -155,7 +274,6 @@ const EmbeddingGenerator = () => {
                         continue;
                     }
 
-                    // Convert Float32Array to regular array for JSON serialization
                     const descriptorArray = Array.from(faceData.descriptor);
 
                     const fileName = player.imageUrl.split('/').pop() || '';
@@ -195,6 +313,8 @@ const EmbeddingGenerator = () => {
             setStatus(`임베딩 생성 완료! (${totalProcessed}/${players.length}명) JSON 파일이 다운로드됩니다.`);
         } catch (error) {
             setStatus('임베딩 생성 실패: ' + (error as Error).message);
+        } finally {
+            setCurrentProcessingIndex(-1);
         }
     };
 
@@ -215,6 +335,28 @@ const EmbeddingGenerator = () => {
                 </div>
                 <div className="mt-2">{status}</div>
             </div>
+
+            {/* 현재 처리 중인 이미지 시각화 영역 */}
+            {currentProcessingIndex >= 0 && (
+                <div className="mb-6 p-4 border rounded bg-gray-50">
+                    <h2 className="text-lg font-semibold mb-2">
+                        현재 처리 중: {players[currentProcessingIndex]?.name}
+                    </h2>
+                    <div className="relative">
+                        <img
+                            ref={imageRef}
+                            src={players[currentProcessingIndex]?.imageUrl}
+                            alt="Processing"
+                            className="max-w-full h-auto"
+                            style={{ display: 'none' }}
+                        />
+                        <canvas
+                            ref={canvasRef}
+                            className="max-w-full h-auto"
+                        />
+                    </div>
+                </div>
+            )}
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
                 {players.map((player, index) => (

@@ -1,9 +1,9 @@
 [
   {
     "id": "l88emivao",
-    "name": "Choi Jeong",
+    "name": "최정",
     "team": "SSG 랜더스",
-    "imageUrl": "/public/images/Choi%20Jeong.jpeg",
+    "imageUrl": "/images/Choi%20Jeong.jpeg",
     "descriptor": [
       0.491704523563385,
       0.38210397958755493,
@@ -1443,9 +1443,9 @@
   },
   {
     "id": "q3w38ex7y",
-    "name": "Choi Jihoon",
+    "name": "최지훈",
     "team": "SSG 랜더스",
-    "imageUrl": "/public/images/Choi%20Jihoon.jpeg",
+    "imageUrl": "/images/Choi%20Jihoon.jpeg",
     "descriptor": [
       0.4944859445095062,
       0.40714240074157715,
@@ -2885,9 +2885,9 @@
   },
   {
     "id": "6rmur3br4",
-    "name": "Choo Shin soo",
+    "name": "추신수",
     "team": "SSG 랜더스",
-    "imageUrl": "/public/images/Choo%20Shin-soo.jpeg",
+    "imageUrl": "/images/Choo%20Shin-soo.jpeg",
     "descriptor": [
       0.4979904294013977,
       0.3758934438228607,
@@ -4327,9 +4327,9 @@
   },
   {
     "id": "rf34pmqv2",
-    "name": "Ha Jaehoon",
+    "name": "하재훈",
     "team": "SSG 랜더스",
-    "imageUrl": "/public/images/Ha%20Jaehoon.jpeg",
+    "imageUrl": "/images/Ha%20Jaehoon.jpeg",
     "descriptor": [
       0.494369238615036,
       0.38348934054374695,
@@ -5769,9 +5769,9 @@
   },
   {
     "id": "f93prhs77",
-    "name": "Han Yooseom",
+    "name": "한유섬",
     "team": "SSG 랜더스",
-    "imageUrl": "/public/images/Han%20Yooseom.jpeg",
+    "imageUrl": "/images/Han%20Yooseom.jpeg",
     "descriptor": [
       0.4996439218521118,
       0.3969092071056366,
@@ -7211,9 +7211,9 @@
   },
   {
     "id": "gf14p4f1d",
-    "name": "Jo Byeonghyeon",
+    "name": "조병현",
     "team": "SSG 랜더스",
-    "imageUrl": "/public/images/Jo%20Byeonghyeon.jpeg",
+    "imageUrl": "/images/Jo%20Byeonghyeon.jpeg",
     "descriptor": [
       0.5040656328201294,
       0.3903656005859375,
@@ -8653,9 +8653,9 @@
   },
   {
     "id": "r3frztclr",
-    "name": "Kim Kwang Hyun",
+    "name": "김광현",
     "team": "SSG 랜더스",
-    "imageUrl": "/public/images/Kim%20Kwang-Hyun.jpeg",
+    "imageUrl": "/images/Kim%20Kwang-Hyun.jpeg",
     "descriptor": [
       0.4960455000400543,
       0.38402047753334045,
@@ -10095,9 +10095,9 @@
   },
   {
     "id": "skhp2ouic",
-    "name": "Ko Myeongjun",
+    "name": "고명준",
     "team": "SSG 랜더스",
-    "imageUrl": "/public/images/Ko%20Myeongjun.jpeg",
+    "imageUrl": "/images/Ko%20Myeongjun.jpeg",
     "descriptor": [
       0.4899786710739136,
       0.3839009702205658,
@@ -11537,9 +11537,9 @@
   },
   {
     "id": "rf8qmy5g4",
-    "name": "Lee Jiyoung",
+    "name": "이지영",
     "team": "SSG 랜더스",
-    "imageUrl": "/public/images/Lee%20Jiyoung.jpeg",
+    "imageUrl": "/images/Lee%20Jiyoung.jpeg",
     "descriptor": [
       0.49082568287849426,
       0.3859728276729584,
@@ -12979,9 +12979,9 @@
   },
   {
     "id": "p7gw0ppw3",
-    "name": "Lee Roun",
+    "name": "이로운",
     "team": "SSG 랜더스",
-    "imageUrl": "/public/images/Lee%20Roun.jpeg",
+    "imageUrl": "/images/Lee%20Roun.jpeg",
     "descriptor": [
       0.49719172716140747,
       0.40193769335746765,
@@ -14421,9 +14421,9 @@
   },
   {
     "id": "82lsfyax6",
-    "name": "Moon Seungwon",
+    "name": "문승원",
     "team": "SSG 랜더스",
-    "imageUrl": "/public/images/Moon%20Seungwon.jpeg",
+    "imageUrl": "/images/Moon%20Seungwon.jpeg",
     "descriptor": [
       0.4887039065361023,
       0.3733692467212677,
@@ -15863,9 +15863,9 @@
   },
   {
     "id": "81l48iz5q",
-    "name": "Noh Kyungeun",
+    "name": "노경은",
     "team": "SSG 랜더스",
-    "imageUrl": "/public/images/Noh%20Kyungeun.jpeg",
+    "imageUrl": "/images/Noh%20Kyungeun.jpeg",
     "descriptor": [
       0.49534913897514343,
       0.39108964800834656,
@@ -17305,9 +17305,9 @@
   },
   {
     "id": "i11vu6qxb",
-    "name": "Oh Taegon",
+    "name": "오태곤",
     "team": "SSG 랜더스",
-    "imageUrl": "/public/images/Oh%20Taegon.jpeg",
+    "imageUrl": "/images/Oh%20Taegon.jpeg",
     "descriptor": [
       0.49928128719329834,
       0.41116902232170105,
@@ -18747,9 +18747,9 @@
   },
   {
     "id": "qa9n6tvb0",
-    "name": "Park Jihwan",
+    "name": "박지환",
     "team": "SSG 랜더스",
-    "imageUrl": "/public/images/Park%20Jihwan.jpeg",
+    "imageUrl": "/images/Park%20Jihwan.jpeg",
     "descriptor": [
       0.4865780770778656,
       0.3700588345527649,
@@ -20189,9 +20189,9 @@
   },
   {
     "id": "csc961goq",
-    "name": "Park Seonghan",
+    "name": "박성한",
     "team": "SSG 랜더스",
-    "imageUrl": "/public/images/Park%20Seonghan.jpeg",
+    "imageUrl": "/images/Park%20Seonghan.jpeg",
     "descriptor": [
       0.4978013038635254,
       0.39995408058166504,
@@ -21631,9 +21631,9 @@
   },
   {
     "id": "x2wx02pyj",
-    "name": "Seo Jinyong",
+    "name": "서진용",
     "team": "SSG 랜더스",
-    "imageUrl": "/public/images/Seo%20Jinyong.jpeg",
+    "imageUrl": "/images/Seo%20Jinyong.jpeg",
     "descriptor": [
       0.49121642112731934,
       0.38713589310646057,
@@ -23073,9 +23073,9 @@
   },
   {
     "id": "nyn8z4adv",
-    "name": "Song Youngjin",
+    "name": "송영진",
     "team": "SSG 랜더스",
-    "imageUrl": "/public/images/Song%20Youngjin.jpeg",
+    "imageUrl": "/images/Song%20Youngjin.jpeg",
     "descriptor": [
       0.5046834945678711,
       0.3771023750305176,

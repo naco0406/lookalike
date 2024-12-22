@@ -47,7 +47,7 @@ export const ResultDisplay = ({ results }: ResultDisplayProps) => {
                         />
 
                         {/* Similarity Badge */}
-                        <Box
+                        {/* <Box
                             position="absolute"
                             top={2}
                             right={2}
@@ -60,7 +60,7 @@ export const ResultDisplay = ({ results }: ResultDisplayProps) => {
                             fontWeight="bold"
                         >
                             {result.similarity.toFixed(1)}% 일치
-                        </Box>
+                        </Box> */}
 
                         {/* Text Overlay */}
                         <Box

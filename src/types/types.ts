@@ -2,34 +2,41 @@
 import * as faceapi from 'face-api.js';
 
 export interface FaceDetectionResult {
-    detection: faceapi.FaceDetection;
-    landmarks: faceapi.FaceLandmarks68;
-    descriptor: Float32Array;
+  detection: faceapi.FaceDetection;
+  landmarks: faceapi.FaceLandmarks68;
+  descriptor: Float32Array;
 }
 
 export interface ProcessedImage {
-    element: HTMLImageElement;
-    tensor: any; // tf.Tensor3D
-    url: string;
+  element: HTMLImageElement;
+  tensor: any; // tf.Tensor3D
+  url: string;
 }
 
 export interface KBOPlayer {
-    id: string;
-    name: string;
-    team: string;
-    imageUrl: string;
-    descriptor?: Float32Array;
+  id: string;
+  name: string;
+  team: string;
+  imageUrl: string;
+  descriptor?: Float32Array; // 이전 버전과의 호환성을 위해 유지
+  mediapipeDescriptor?: Float32Array;
+  faceApiDescriptor?: Float32Array;
+}
+
+export interface MultiModelDescriptors {
+  mediapipeDescriptor: Float32Array | null;
+  faceApiDescriptor: Float32Array | null;
 }
 
 export interface MatchResult {
-    player: KBOPlayer;
-    similarity: number;
+  player: KBOPlayer;
+  similarity: number;
 }
 
 export interface ModelStatus {
-    faceDetection: boolean;
-    faceLandmark: boolean;
-    faceRecognition: boolean;
+  faceDetection: boolean;
+  faceLandmark: boolean;
+  faceRecognition: boolean;
 }
 
 export type ModelLoadingStatus = 'idle' | 'loading' | 'loaded' | 'error';

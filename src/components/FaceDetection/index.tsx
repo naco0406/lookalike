@@ -1,23 +1,27 @@
+// MultiModelFaceDetection.tsx
 import React, { useEffect, useRef, useState } from 'react';
 import { ImageUploader } from './ImageUploader';
 import { LoadingIndicator } from './LoadingIndicator';
 import { ResultDisplay } from './ResultDisplay';
 import { KBOPlayer, MatchResult } from '../../types/types';
-import { calculateEnhancedSimilarity, createImageFromFile, processImage } from '../../utils/imageUtils';
-import { initializeModels } from '../../models/initModels';
-import { loadPlayerData } from '../../services/playerData';
+import { initializeModels, processImageWithMultiModel } from '../../utils/multiModelUtils';
+import { loadFaceApiData, loadMediapipeData } from '../../services/playerData';
+import { cleanupFaceMesh, initializeFaceMesh } from '../../utils/faceUtils';
+import { Box, VStack } from '@chakra-ui/react';
 
-const FaceDetection: React.FC = () => {
+const MultiModelFaceDetection: React.FC = () => {
     const [isModelReady, setIsModelReady] = useState(false);
     const [status, setStatus] = useState<'idle' | 'loading' | 'ready' | 'error'>('idle');
     const [isProcessing, setIsProcessing] = useState(false);
     const [results, setResults] = useState<MatchResult[]>([]);
-    const [players, setPlayers] = useState<KBOPlayer[]>([]);
     const [currentImage, setCurrentImage] = useState<string | null>(null);
     const [dataLoadError, setDataLoadError] = useState<string | null>(null);
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-    // 시각화를 위한 refs
+    // Separate states for each model's data
+    const [mediapipePlayers, setMediapipePlayers] = useState<KBOPlayer[]>([]);
+    const [faceApiPlayers, setFaceApiPlayers] = useState<KBOPlayer[]>([]);
+
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const imageRef = useRef<HTMLImageElement>(null);
 
@@ -29,16 +33,22 @@ const FaceDetection: React.FC = () => {
             setStatus('loading');
 
             try {
-                // 모델과 선수 데이터 동시에 로드
-                const [modelSuccess, playerData] = await Promise.all([
+                // Load both models and player data
+                const [modelSuccess, mediapipeData, faceApiData] = await Promise.all([
                     initializeModels(),
-                    loadPlayerData()
+                    loadMediapipeData(),
+                    loadFaceApiData()
                 ]);
 
                 if (!mounted) return;
 
-                if (modelSuccess && playerData) {
-                    setPlayers(playerData);
+                if (modelSuccess && mediapipeData && faceApiData) {
+                    console.log('Data loaded:', {
+                        mediapipeCount: mediapipeData.length,
+                        faceApiCount: faceApiData.length
+                    });
+                    setMediapipePlayers(mediapipeData);
+                    setFaceApiPlayers(faceApiData);
                     setStatus('ready');
                     setIsModelReady(true);
                 } else {
@@ -56,8 +66,73 @@ const FaceDetection: React.FC = () => {
         initialize();
         return () => {
             mounted = false;
+            cleanupFaceMesh();
         };
     }, []);
+
+    const calculateSimilarity = (
+        inputMediapipe: Float32Array,
+        inputFaceApi: Float32Array,
+        playerIndex: number
+    ): number => {
+        const mediapipePlayer = mediapipePlayers[playerIndex];
+        const faceApiPlayer = faceApiPlayers[playerIndex];
+
+        if (!mediapipePlayer?.descriptor || !faceApiPlayer?.descriptor) {
+            return 0;
+        }
+
+        // MediaPipe similarity calculation
+        const mediapipeSimilarity = (() => {
+            let distance = 0;
+            const desc2 = new Float32Array(mediapipePlayer.descriptor);
+
+            if (inputMediapipe.length !== desc2.length) {
+                console.error('MediaPipe descriptor length mismatch');
+                return 0;
+            }
+
+            for (let i = 0; i < inputMediapipe.length; i++) {
+                const diff = inputMediapipe[i] - desc2[i];
+                distance += diff * diff;
+            }
+
+            const maxDistance = inputMediapipe.length;
+            return Math.max(0, 100 * (1 - Math.sqrt(distance) / Math.sqrt(maxDistance)));
+        })();
+
+        // Face-API similarity calculation
+        const faceApiSimilarity = (() => {
+            const desc2 = new Float32Array(faceApiPlayer.descriptor);
+
+            if (inputFaceApi.length !== desc2.length) {
+                console.error('Face-API descriptor length mismatch');
+                return 0;
+            }
+
+            let dotProduct = 0;
+            let norm1 = 0;
+            let norm2 = 0;
+
+            for (let i = 0; i < inputFaceApi.length; i++) {
+                dotProduct += inputFaceApi[i] * desc2[i];
+                norm1 += inputFaceApi[i] * inputFaceApi[i];
+                norm2 += desc2[i] * desc2[i];
+            }
+
+            const denominator = Math.sqrt(norm1) * Math.sqrt(norm2);
+            if (denominator === 0) {
+                return 0;
+            }
+
+            const similarity = dotProduct / denominator;
+            return Math.round(((similarity + 1) / 2) * 100);
+        })();
+
+        // Combine similarities with 50:50 ratio
+        console.log('Similarities:', mediapipeSimilarity, faceApiSimilarity);
+        return Math.round(mediapipeSimilarity * 0.5 + faceApiSimilarity * 0.5);
+    };
 
     const handleImageProcess = async (file: File) => {
         setIsProcessing(true);
@@ -65,32 +140,38 @@ const FaceDetection: React.FC = () => {
         setErrorMessage(null);
 
         try {
-            // 이미지 URL 생성 및 저장
+            await cleanupFaceMesh();
+            await initializeFaceMesh();
+
             const imageUrl = URL.createObjectURL(file);
             setCurrentImage(imageUrl);
 
-            // 이미지 로드
-            const img = await createImageFromFile(file);
-            if (imageRef.current) {
-                imageRef.current.src = imageUrl;
-            }
+            // Create image element
+            const img = new Image();
+            await new Promise((resolve, reject) => {
+                img.onload = resolve;
+                img.onerror = reject;
+                img.src = imageUrl;
+            });
 
-            // 얼굴 감지 및 디스크립터 추출
             if (!canvasRef.current) {
                 throw new Error('Canvas를 초기화할 수 없습니다');
             }
-            const detectionResult = await processImage(img, canvasRef.current);
 
-            // 유사도 계산 및 결과 정렬
-            const matches = players
-                .map(player => ({
+            // Process image with both models
+            const { mediapipeDescriptor, faceApiDescriptor } = await processImageWithMultiModel(img, canvasRef.current);
+
+            // Calculate similarities and create matches
+            const matches = mediapipePlayers
+                .map((player, index) => ({
                     player,
-                    similarity: calculateEnhancedSimilarity(detectionResult.descriptor, player.descriptor!)
+                    similarity: calculateSimilarity(mediapipeDescriptor, faceApiDescriptor, index)
                 }))
                 .filter(match => match.similarity > 40)
                 .sort((a, b) => b.similarity - a.similarity)
                 .slice(0, 3);
 
+            console.log('Matches found:', matches);
             setResults(matches);
             setStatus('ready');
         } catch (error) {
@@ -116,7 +197,7 @@ const FaceDetection: React.FC = () => {
                 KBO 닮은꼴 찾기
             </h1>
             <div className='text-xs mb-1'>* 아직 SSG 랜더스만 임베딩이 완료되었습니다</div>
-            <div className='text-xs mb-6'>* 벡터 유사도 상위 3명을 보여줍니다</div>
+            <div className='text-xs mb-6'>* MediaPipe와 Face-API.js의 결과를 조합하여 분석합니다</div>
 
             <div>
                 {status === 'loading' && (
@@ -124,18 +205,29 @@ const FaceDetection: React.FC = () => {
                 )}
 
                 {status === 'error' && !currentImage && (
-                    <div className="text-red-500 text-center">
-                        초기화에 실패했습니다. 페이지를 새로고침 해주세요.
-                    </div>
+                    <>
+                        <div className="text-red-500 text-center">
+                            초기화에 실패했습니다.
+                        </div>
+                        <div className="text-center mb-4 text-xs">
+                            페이지를 새로고침 해주세요.
+                        </div>
+                    </>
                 )}
 
                 {errorMessage && (
-                    <div className="text-red-500 text-center mb-4">
-                        {errorMessage}
-                    </div>
+                    <>
+                        <div className="text-red-500 text-center ">
+                            문제가 발생했습니다.
+                            {/* {errorMessage} */}
+                        </div>
+                        <div className="text-center mb-4 text-xs">
+                            페이지를 새로고침 해주세요.
+                        </div>
+                    </>
                 )}
 
-                {status === 'ready' && (
+                {status === 'ready' && !errorMessage && (
                     <>
                         <ImageUploader
                             isModelReady={isModelReady}
@@ -144,21 +236,29 @@ const FaceDetection: React.FC = () => {
                         />
 
                         {currentImage && (
-                            <div className="mt-6 mb-6">
-                                <h3 className="text-lg font-semibold mb-2">얼굴 인식 결과</h3>
-                                <div className="relative">
-                                    <img
-                                        ref={imageRef}
-                                        src={currentImage}
-                                        alt="Original"
-                                        className="hidden"
-                                    />
-                                    <canvas
-                                        ref={canvasRef}
-                                        className="w-full h-auto border rounded"
-                                    />
-                                </div>
-                            </div>
+                            <VStack gap={4} width="100%">
+                                <Box
+                                    width="100%"
+                                    maxW="400px"
+                                    borderRadius="md"
+                                    overflow="hidden"
+                                    className="mt-6 mb-6"
+                                >
+                                    <h3 className="text-lg font-semibold mb-2">얼굴 인식 결과</h3>
+                                    <div className="relative">
+                                        <img
+                                            ref={imageRef}
+                                            src={currentImage}
+                                            alt="Original"
+                                            className="hidden"
+                                        />
+                                        <canvas
+                                            ref={canvasRef}
+                                            className="w-full h-auto border rounded"
+                                        />
+                                    </div>
+                                </Box>
+                            </VStack>
                         )}
 
                         <ResultDisplay
@@ -171,4 +271,4 @@ const FaceDetection: React.FC = () => {
     );
 };
 
-export default FaceDetection;
+export default MultiModelFaceDetection;

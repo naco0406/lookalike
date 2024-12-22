@@ -1,13 +1,13 @@
 // MultiModelFaceDetection.tsx
-import React, { useEffect, useRef, useState } from 'react';
-import { ImageUploader } from './ImageUploader';
-import { LoadingIndicator } from './LoadingIndicator';
-import { ResultDisplay } from './ResultDisplay';
-import { KBOPlayer, MatchResult } from '../../types/types';
-import { initializeModels, processImageWithMultiModel } from '../../utils/multiModelUtils';
-import { loadFaceApiData, loadMediapipeData } from '../../services/playerData';
-import { cleanupFaceMesh, initializeFaceMesh } from '../../utils/faceUtils';
 import { Box, VStack } from '@chakra-ui/react';
+import React, { useEffect, useRef, useState } from 'react';
+import { loadFaceApiData, loadMediapipeData } from '../../services/playerData';
+import { KBOPlayer, MatchResult } from '../../types/types';
+import { cleanupFaceMesh, initializeFaceMesh } from '../../utils/faceUtils';
+import { initializeModels, processImageWithMultiModel } from '../../utils/multiModelUtils';
+import { ImageUploader } from './ImageUploader';
+import KBOLoadingIndicator from './KBOLoadingIndicator';
+import { ResultDisplay } from './ResultDisplay';
 
 const MultiModelFaceDetection: React.FC = () => {
     const [isModelReady, setIsModelReady] = useState(false);
@@ -199,15 +199,16 @@ const MultiModelFaceDetection: React.FC = () => {
 
     return (
         <div className="container mx-auto px-4 py-8">
-            <h1 className="text-4xl font-bold text-center mb-4">
+            <h1 className="text-4xl font-bold text-center mb-2">
                 KBO 닮은꼴 찾기
             </h1>
-            <div className='text-xs mb-1'>* 아직 SSG 랜더스만 임베딩이 완료되었습니다</div>
-            <div className='text-xs mb-6'>* MediaPipe와 Face-API.js의 결과를 조합하여 분석합니다</div>
+            <div className='text-xs mb-6'>* 아직 SSG 랜더스만 임베딩이 완료되었습니다</div>
+            {/* <div className='text-xs mb-6'>* MediaPipe와 Face-API.js의 결과를 조합하여 분석합니다</div> */}
 
             <div>
                 {status === 'loading' && (
-                    <LoadingIndicator message="모델과 데이터를 로딩중입니다..." status={status} />
+                    // <LoadingIndicator message="모델과 데이터를 로딩중입니다..." status={status} />
+                    <KBOLoadingIndicator status={status} />
                 )}
 
                 {status === 'error' && !currentImage && (
@@ -223,17 +224,20 @@ const MultiModelFaceDetection: React.FC = () => {
 
                 {errorMessage && (
                     <>
-                        <div className="text-red-500 text-center ">
-                            문제가 발생했습니다.
-                            {/* {errorMessage} */}
+                        <div className="text-center">
+                            {/* 문제가 발생했습니다. */}
+                            {errorMessage}
                         </div>
-                        <div className="text-center mb-4 text-xs">
-                            페이지를 새로고침 해주세요.
+                        <div className="text-center mb-1 text-xs">
+                            다른 사진으로 다시 시도해주세요.
                         </div>
+                        {/* <div className="text-center mb-6 text-xs">
+                            잘 안 되면 새로고침 해주세요.
+                        </div> */}
                     </>
                 )}
 
-                {status === 'ready' && !errorMessage && (
+                {(status === 'ready' || status === 'error') && (
                     <>
                         <ImageUploader
                             isModelReady={isModelReady}
@@ -241,7 +245,7 @@ const MultiModelFaceDetection: React.FC = () => {
                             isProcessing={isProcessing}
                         />
 
-                        {currentImage && (
+                        {currentImage && !errorMessage && (
                             <VStack gap={4} width="100%">
                                 <Box
                                     width="100%"

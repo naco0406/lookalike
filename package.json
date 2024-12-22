@@ -17,6 +17,7 @@
     "@mediapipe/drawing_utils": "^0.3.1675466124",
     "@mediapipe/face_mesh": "^0.4.1633559619",
     "@tensorflow/tfjs": "^4.22.0",
+    "@vercel/analytics": "^1.4.1",
     "face-api.js": "^0.22.2",
     "framer-motion": "^11.15.0",
     "react": "^18.3.1",

@@ -70,6 +70,12 @@ const MultiModelFaceDetection: React.FC = () => {
         };
     }, []);
 
+    useEffect(() => {
+        return () => {
+            cleanupFaceMesh();
+        };
+    }, []);
+
     const calculateSimilarity = (
         inputMediapipe: Float32Array,
         inputFaceApi: Float32Array,

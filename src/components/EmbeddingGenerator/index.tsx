@@ -53,7 +53,7 @@ const EmbeddingGenerator = () => {
             console.log('생성된 플레이어 객체:', initialPlayers);
 
             setPlayers(initialPlayers);
-            setStatus(`${initialPlayers.length}명의 선수 이미지를 불러왔습니다. 팀 정보를 입력해주세요.`);
+            setStatus(`${initialPlayers.length}명의 선수 이미지를 불러왔습니다. 정보를 입력해주세요.`);
         } catch (error) {
             console.error('이미지 목록 로드 에러:', error);
             setStatus('이미지 목록 로드 실패: ' + (error as Error).message);
@@ -206,12 +206,12 @@ const EmbeddingGenerator = () => {
         <div className="container mx-auto p-4">
             <h1 className="text-2xl font-bold mb-4">KBO 선수 임베딩 생성기</h1>
 
-            <div className="mb-4 p-2 bg-blue-100 rounded">
-                <div>모델 상태:</div>
+            <div className="mb-4 p-2 border rounded">
+                <div>Status:</div>
                 <div className="text-sm">
-                    <div>얼굴 감지: {modelLoadStatus.faceDetection ? '✅' : '❌'}</div>
-                    <div>랜드마크: {modelLoadStatus.faceLandmark ? '✅' : '❌'}</div>
-                    <div>얼굴 인식: {modelLoadStatus.faceRecognition ? '✅' : '❌'}</div>
+                    <div>Face Detection: {modelLoadStatus.faceDetection ? '✅' : '❌'}</div>
+                    <div>Face Landmark: {modelLoadStatus.faceLandmark ? '✅' : '❌'}</div>
+                    <div>Face Recognition: {modelLoadStatus.faceRecognition ? '✅' : '❌'}</div>
                 </div>
                 <div className="mt-2">{status}</div>
             </div>

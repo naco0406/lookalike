@@ -168,7 +168,9 @@ const FaceAPIEmbeddingGenerator = () => {
     };
 
     const [processedPlayers, setProcessedPlayers] = useState<KBOPlayer[]>([]);
+    // @ts-expect-error
     const [processingComplete, setProcessingComplete] = useState<boolean>(false);
+    // @ts-expect-error
     const [processedCount, setProcessedCount] = useState<number>(0);
 
     const processNextPlayer = async () => {

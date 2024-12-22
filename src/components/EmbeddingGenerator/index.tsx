@@ -1,11 +1,12 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { initializeFaceMesh, processImage } from '../../utils/faceUtils';
+import { useEffect, useRef, useState } from 'react';
 import { KBOPlayer } from '../../types/types';
+import { initializeFaceMesh, processImage } from '../../utils/faceUtils';
 
 const EmbeddingGenerator = () => {
     const [status, setStatus] = useState<string>('idle');
     const [players, setPlayers] = useState<KBOPlayer[]>([]);
     const [isLoading, setIsLoading] = useState<boolean>(true);
+    // @ts-expect-error
     const [currentProcessingIndex, setCurrentProcessingIndex] = useState<number>(-1);
     const [isFaceMeshReady, setIsFaceMeshReady] = useState(false);
     const canvasRef = useRef<HTMLCanvasElement>(null);

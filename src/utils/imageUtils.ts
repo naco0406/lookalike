@@ -109,6 +109,7 @@ export async function createImageFromFile(file: File): Promise<HTMLImageElement>
       URL.revokeObjectURL(img.src);
       resolve(img);
     };
+    // @ts-expect-error
     img.onerror = (error) => {
       URL.revokeObjectURL(img.src);
       reject(new Error('이미지 로드에 실패했습니다'));

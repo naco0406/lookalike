@@ -1,10 +1,9 @@
-// src/app/lookalike/components/FaceDetection.tsx
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { ImageUploader } from './ImageUploader';
 import { LoadingIndicator } from './LoadingIndicator';
 import { ResultDisplay } from './ResultDisplay';
 import { KBOPlayer, MatchResult } from '../../types/types';
-import { calculateSimilarity, processImage } from '../../utils/imageUtils';
+import { calculateEnhancedSimilarity, createImageFromFile, processImage } from '../../utils/imageUtils';
 import { initializeModels } from '../../models/initModels';
 import { loadPlayerData } from '../../services/playerData';
 
@@ -14,7 +13,13 @@ const FaceDetection: React.FC = () => {
     const [isProcessing, setIsProcessing] = useState(false);
     const [results, setResults] = useState<MatchResult[]>([]);
     const [players, setPlayers] = useState<KBOPlayer[]>([]);
+    const [currentImage, setCurrentImage] = useState<string | null>(null);
     const [dataLoadError, setDataLoadError] = useState<string | null>(null);
+    const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+    // 시각화를 위한 refs
+    const canvasRef = useRef<HTMLCanvasElement>(null);
+    const imageRef = useRef<HTMLImageElement>(null);
 
     useEffect(() => {
         let mounted = true;
@@ -33,14 +38,11 @@ const FaceDetection: React.FC = () => {
                 if (!mounted) return;
 
                 if (modelSuccess && playerData) {
-                    console.log('Initialization completed successfully');
                     setPlayers(playerData);
                     setStatus('ready');
                     setIsModelReady(true);
-                    console.log(playerData)
                 } else {
-                    console.error('Initialization failed');
-                    setStatus('error');
+                    throw new Error('초기화에 실패했습니다');
                 }
             } catch (error) {
                 console.error('Initialization error:', error);
@@ -58,36 +60,43 @@ const FaceDetection: React.FC = () => {
     }, []);
 
     const handleImageProcess = async (file: File) => {
-        console.log('Starting image processing:', file.name);
         setIsProcessing(true);
         setResults([]);
+        setErrorMessage(null);
 
         try {
-            console.log('Processing image...');
-            const { descriptor } = await processImage(file);
+            // 이미지 URL 생성 및 저장
+            const imageUrl = URL.createObjectURL(file);
+            setCurrentImage(imageUrl);
 
-            console.log('Image processed successfully, calculating similarities...');
+            // 이미지 로드
+            const img = await createImageFromFile(file);
+            if (imageRef.current) {
+                imageRef.current.src = imageUrl;
+            }
+
+            // 얼굴 감지 및 디스크립터 추출
+            if (!canvasRef.current) {
+                throw new Error('Canvas를 초기화할 수 없습니다');
+            }
+            const detectionResult = await processImage(img, canvasRef.current);
+
+            // 유사도 계산 및 결과 정렬
             const matches = players
-                .map(player => {
-                    const similarity = player.descriptor ? calculateSimilarity(descriptor, player.descriptor) : 0;
-                    console.log(`Similarity with ${player.name}:`, similarity);
-                    return {
-                        player,
-                        similarity: similarity * 100
-                    };
-                })
-                .filter(match => {
-                    const passes = match.similarity > 40;
-                    console.log(`${match.player.name} passes threshold:`, passes);
-                    return passes;
-                })
+                .map(player => ({
+                    player,
+                    similarity: calculateEnhancedSimilarity(detectionResult.descriptor, player.descriptor!)
+                }))
+                .filter(match => match.similarity > 40)
                 .sort((a, b) => b.similarity - a.similarity)
                 .slice(0, 3);
 
-            console.log('Final matches:', matches);
             setResults(matches);
+            setStatus('ready');
         } catch (error) {
             console.error('Image processing error:', error);
+            setErrorMessage(error instanceof Error ? error.message : '이미지 처리 중 오류가 발생했습니다');
+            setStatus('error');
         } finally {
             setIsProcessing(false);
         }
@@ -114,9 +123,15 @@ const FaceDetection: React.FC = () => {
                     <LoadingIndicator message="모델과 데이터를 로딩중입니다..." status={status} />
                 )}
 
-                {status === 'error' && (
+                {status === 'error' && !currentImage && (
                     <div className="text-red-500 text-center">
                         초기화에 실패했습니다. 페이지를 새로고침 해주세요.
+                    </div>
+                )}
+
+                {errorMessage && (
+                    <div className="text-red-500 text-center mb-4">
+                        {errorMessage}
                     </div>
                 )}
 
@@ -127,6 +142,25 @@ const FaceDetection: React.FC = () => {
                             onImageSelect={handleImageProcess}
                             isProcessing={isProcessing}
                         />
+
+                        {currentImage && (
+                            <div className="mt-6 mb-6">
+                                <h3 className="text-lg font-semibold mb-2">얼굴 인식 결과</h3>
+                                <div className="relative">
+                                    <img
+                                        ref={imageRef}
+                                        src={currentImage}
+                                        alt="Original"
+                                        className="hidden"
+                                    />
+                                    <canvas
+                                        ref={canvasRef}
+                                        className="w-full h-auto border rounded"
+                                    />
+                                </div>
+                            </div>
+                        )}
+
                         <ResultDisplay
                             results={results}
                         />

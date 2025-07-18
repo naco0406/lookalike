@@ -16,11 +16,12 @@
 
 <img width="1748" height="1088" alt="스크린샷 2025-07-18 오전 10 08 27" src="https://github.com/user-attachments/assets/ad0a6a90-1d2f-4085-b494-1331d4804bfb" />
 
-
 KBO 선수들과 닮은꼴을 찾는 AI 서비스
 <br />
 모든 AI 모델과 유사도 계산이 클라이언트 사이드에서 실행되어 서버 없이도 완전히 로컬에서 동작하며, 사용자의 개인정보가 외부로 전송되지 않습니다.
 MediaPipe와 Face-API.js 두 가지 얼굴 인식 모델을 사용하여 UI와 유사도 분석을 제공합니다.
+
+**🌐 Demo**: [lookalike.naco.kr](https://lookalike.naco.kr/)
 
 ### 주요 기능
 
